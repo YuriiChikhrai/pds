@@ -11,15 +11,15 @@ PLATFORM="$(uname --hardware-platform || true)"
 DISTRIB_CODENAME="$(lsb_release --codename --short || true)"
 DISTRIB_ID="$(lsb_release --id --short | tr '[:upper:]' '[:lower:]' || true)"
 
-# Secure generator comands
+# Secure generator commands
 GENERATE_SECURE_SECRET_CMD="openssl rand --hex 16"
 GENERATE_K256_PRIVATE_KEY_CMD="openssl ecparam --name secp256k1 --genkey --noout --outform DER | tail --bytes=+8 | head --bytes=32 | xxd --plain --cols 32"
 
 # The Docker compose file.
-COMPOSE_URL="https://raw.githubusercontent.com/bluesky-social/pds/main/compose.yaml"
+COMPOSE_URL="https://raw.githubusercontent.com/YuriiChikhrai/pds/main/compose.yaml"
 
 # The pdsadmin script.
-PDSADMIN_URL="https://raw.githubusercontent.com/bluesky-social/pds/main/pdsadmin.sh"
+PDSADMIN_URL="https://raw.githubusercontent.com/YuriiChikhrai/pds/main/pdsadmin.sh"
 
 # System dependencies.
 REQUIRED_SYSTEM_PACKAGES="
@@ -37,6 +37,7 @@ REQUIRED_DOCKER_PACKAGES="
   containerd.io
   docker-ce
   docker-ce-cli
+  docker-compose
   docker-compose-plugin
 "
 
@@ -80,8 +81,8 @@ function main {
   if [[ "${PLATFORM}" == "unknown" ]]; then
     PLATFORM="x86_64"
   fi
-  if [[ "${PLATFORM}" != "x86_64" ]] && [[ "${PLATFORM}" != "aarch64" ]] && [[ "${PLATFORM}" != "arm64" ]]; then
-    usage "Sorry, only x86_64 and aarch64/arm64 are supported. Exiting..."
+  if [[ "${PLATFORM}" != "x86_64" ]] && [[ "${PLATFORM}" != "aarch64" ]] && [[ "${PLATFORM}" != "arm64" ]] && [[ "${PLATFORM}" != "armv7l" ]]; then
+    usage "Sorry, only x86_64, aarch64/arm64, and armv7l are supported. Exiting..."
   fi
 
   # Check for a supported distribution.
@@ -134,7 +135,7 @@ function main {
     echo "  sudo rm -rf ${PDS_DATADIR}"
     echo
     echo "3. Re-run this installation script"
-      echo
+    echo
     echo "  sudo bash ${0}"
     echo
     echo "For assistance, check https://github.com/bluesky-social/pds"
@@ -278,7 +279,6 @@ INSTALLER_MESSAGE
   }
 }
 DOCKERD_CONFIG
-    systemctl restart docker
   else
     echo "* Docker daemon already configured! Ensure log rotation is enabled."
   fi
@@ -357,30 +357,10 @@ PDS_CONFIG
   sed --in-place "s|/pds|${PDS_DATADIR}|g" "${PDS_DATADIR}/compose.yaml"
 
   #
-  # Create the systemd service.
+  # Run service.
   #
-  echo "* Starting the pds systemd service"
-  cat <<SYSTEMD_UNIT_FILE >/etc/systemd/system/pds.service
-[Unit]
-Description=Bluesky PDS Service
-Documentation=https://github.com/bluesky-social/pds
-Requires=docker.service
-After=docker.service
-
-[Service]
-Type=oneshot
-RemainAfterExit=yes
-WorkingDirectory=${PDS_DATADIR}
-ExecStart=/usr/bin/docker compose --file ${PDS_DATADIR}/compose.yaml up --detach
-ExecStop=/usr/bin/docker compose --file ${PDS_DATADIR}/compose.yaml down
-
-[Install]
-WantedBy=default.target
-SYSTEMD_UNIT_FILE
-
-  systemctl daemon-reload
-  systemctl enable pds
-  systemctl restart pds
+  echo "* Starting the pds service using Docker Compose"
+  docker-compose -f ${PDS_DATADIR}/compose.yaml up -d
 
   # Enable firewall access if ufw is in use.
   if ufw status >/dev/null 2>&1; then
@@ -411,7 +391,7 @@ SYSTEMD_UNIT_FILE
 PDS installation successful!
 ------------------------------------------------------------------------
 
-Check service status      : sudo systemctl status pds
+Check service status      : sudo docker ps
 Watch service logs        : sudo docker logs -f pds
 Backup service data       : ${PDS_DATADIR}
 PDS Admin command         : pdsadmin
