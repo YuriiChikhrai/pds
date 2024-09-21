@@ -1,5 +1,8 @@
 FROM node:20.11-alpine3.18 as build
 
+# Install vips
+RUN apk update && apk add --no-cache vips vips-dev make gcc g++
+
 RUN npm install -g pnpm
 
 # Move files into the image and install

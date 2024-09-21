@@ -7,5 +7,10 @@
   "license": "MIT",
   "dependencies": {
     "@atproto/pds": "0.4.59"
+  },
+  "pnpm": {
+    "overrides": {
+      "sharp": "0.32.4"
+    }
   }
 }
