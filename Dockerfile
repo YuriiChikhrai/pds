@@ -13,6 +13,9 @@ RUN pnpm install --production --frozen-lockfile > /dev/null
 # Uses assets from build stage to reduce build size
 FROM node:20.11-alpine3.18
 
+# Install vips
+RUN apk update && apk add --no-cache vips vips-dev make gcc g++
+
 RUN apk add --update dumb-init
 
 # Avoid zombie processes, handle signal forwarding

@@ -3,39 +3,34 @@ services:
   caddy:
     container_name: caddy
     image: caddy:2
-    network_mode: host
+#    network_mode: host
+    ports:
+      - "2019:2019"
+      - "8080:80"
+      - "8443:443"
     depends_on:
       - pds
     restart: unless-stopped
     volumes:
       - type: bind
-        source: /pds/caddy/data
+        source: /share/Container/pds/caddy/data
         target: /data
       - type: bind
-        source: /pds/caddy/etc/caddy
+        source: /share/Container/pds/caddy/etc/caddy
         target: /etc/caddy
   pds:
     container_name: pds
     build:
       context: .
       dockerfile: Dockerfile
-    network_mode: host
+#    network_mode: host
+    ports:
+      - "2583:2583"
+      - "3000:3000"
     restart: unless-stopped
     volumes:
       - type: bind
-        source: /pds
+        source: /share/Container/pds
         target: /pds
     env_file:
       - /pds/pds.env
-  watchtower:
-    container_name: watchtower
-    image: containrrr/watchtower:latest
-    network_mode: host
-    volumes:
-      - type: bind
-        source: /var/run/docker.sock
-        target: /var/run/docker.sock
-    restart: unless-stopped
-    environment:
-      WATCHTOWER_CLEANUP: "true"
-      WATCHTOWER_SCHEDULE: "@midnight"
