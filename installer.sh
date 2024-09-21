@@ -15,9 +15,6 @@ DISTRIB_ID="$(lsb_release --id --short | tr '[:upper:]' '[:lower:]' || true)"
 GENERATE_SECURE_SECRET_CMD="openssl rand --hex 16"
 GENERATE_K256_PRIVATE_KEY_CMD="openssl ecparam --name secp256k1 --genkey --noout --outform DER | tail --bytes=+8 | head --bytes=32 | xxd --plain --cols 32"
 
-# The Docker compose file.
-COMPOSE_URL="https://raw.githubusercontent.com/YuriiChikhrai/pds/main/compose.yaml"
-
 # The pdsadmin script.
 PDSADMIN_URL="https://raw.githubusercontent.com/YuriiChikhrai/pds/main/pdsadmin.sh"
 
@@ -342,25 +339,14 @@ PDS_CRAWLERS=${PDS_CRAWLERS}
 LOG_ENABLED=true
 PDS_CONFIG
 
-  #
-  # Download and install pds launcher.
-  #
-  echo "* Downloading PDS compose file"
-  curl \
-    --silent \
-    --show-error \
-    --fail \
-    --output "${PDS_DATADIR}/compose.yaml" \
-    "${COMPOSE_URL}"
-
   # Replace the /pds paths with the ${PDS_DATADIR} path.
-  sed --in-place "s|/pds|${PDS_DATADIR}|g" "${PDS_DATADIR}/compose.yaml"
+  sed --in-place "s|/pds|${PDS_DATADIR}|g" compose.yaml
 
   #
   # Run service.
   #
   echo "* Starting the pds service using Docker Compose"
-  docker-compose -f ${PDS_DATADIR}/compose.yaml up -d
+  docker-compose -f compose.yaml up -d
 
   # Enable firewall access if ufw is in use.
   if ufw status >/dev/null 2>&1; then

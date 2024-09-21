@@ -131,16 +131,22 @@ These should all return your server's public IP.
 
 ### Installer on Ubuntu 20.04/22.04 and Debian 11/12
 
-On your server via ssh, download the installer script using wget:
+Prepare you docker image:
 
 ```bash
-wget https://raw.githubusercontent.com/bluesky-social/pds/main/installer.sh
+apt update && apt install -y wget unzip lsb-release sudo
 ```
 
-or download it using curl:
+On your server via ssh, download source using wget:
 
 ```bash
-curl https://raw.githubusercontent.com/bluesky-social/pds/main/installer.sh >installer.sh
+wget https://github.com/YuriiChikhrai/pds/archive/refs/heads/main.zip
+```
+
+Unzip the source:
+
+```bash
+unzip main.zip && cd pds-main
 ```
 
 And then run the installer using bash:
